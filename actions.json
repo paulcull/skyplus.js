@@ -1,0 +1,54 @@
+{
+	actions: [
+		{
+			name: pause  ,
+				{
+					header : '"urn:schemas-nds-com:service:SkyPlay:2#Pause"',
+					body : '<?xml version="1.0" encoding="utf-8"?>' + 
+						'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+						'<u:Pause xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+						'<InstanceID>0</InstanceID></u:Pause></s:Body></s:Envelope>',
+					getBody : function() {
+						return this.body;
+					}
+				}	
+		},
+		{
+			name: play, 
+				{
+					header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
+					body : '<?xml version="1.0" encoding="utf-8"?>' + 
+						'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+						'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+						'<InstanceID>0</InstanceID><Speed>1</Speed></u:Play></s:Body></s:Envelope>',
+					getBody : function() {
+						return this.body;
+					}
+				}
+		},
+		{
+			name: ffw,
+				{
+					header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
+					getBody : function(speed) {
+						return '<?xml version="1.0" encoding="utf-8"?>' +
+							'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
+							'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' +
+							'<InstanceID>0</InstanceID><Speed>' + speed + '</Speed></u:Play></s:Body></s:Envelope>';
+					}
+				}
+		},
+		{
+			name: channel, 
+				{
+					header : '"urn:schemas-nds-com:service:SkyPlay:2#SetAVTransportURI"',
+					getBody : function(channel) {
+						return '<?xml version="1.0" encoding="utf-8"?>' + 
+							'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+							'<u:SetAVTransportURI xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+							'<InstanceID>0</InstanceID><CurrentURI>xsi://' + channel + '</CurrentURI></u:SetAVTransportURI></s:Body></s:Envelope>'
+					}
+				}
+		}
+	]
+}

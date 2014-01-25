@@ -1,9 +1,9 @@
-var LogitechMediaServer = require('./index');
+var SkyPlusNetwork = require('./index');
 //var lms = new LogitechMediaServer('192.168.0.106');
-var lms = new LogitechMediaServer('localhost');
+var sky = new SkyPlusNetwork('localhost');
 var player;
-//var mac_address = '00:04:20:27:5f:75';   // kitchen
-var mac_address = '93:15:45:55:15:fb'; //macbook
+var ip_address = '192.168.1.43';   // kitchen
+//var mac_address = '93:15:45:55:15:fb'; //macbook
 
 // Simple keypress detection
 var readline = require('readline');
@@ -16,11 +16,11 @@ rl.on('line', function (cmd) {
   console.log(player.inspect());
 });
 
-lms.on("registration_finished", function() {
+sky.on("registration_finished", function() {
   console.log("Registration finished.");
 
   // Find the player in the players dictionary
-  player = lms.players[mac_address];
+  player = sky.players[mac_address];
   //console.log('about to inspect'); 
   console.log(player.inspect());
   
@@ -30,7 +30,7 @@ lms.on("registration_finished", function() {
   // });
 
  // set subscriptions to each of the events
-  'logitech_event,property,playlists,songinfo'
+  'response'
   .split(',').forEach(  function listenToNotification(eventName) {
     //self.app.log.debug('listening to %s on %s',eventName,mac.toUpperCase());
     player.on(eventName, function(e) {
@@ -43,4 +43,4 @@ lms.on("registration_finished", function() {
 
 });
 
-lms.start();
+sky.start();
