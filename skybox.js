@@ -36,19 +36,21 @@ util.inherits(SkyBox, EventEmitter);
 
 SkyBox.prototype.command = function(command, commandValue) {
 
+	var self = this;
 	// SkyPlay2 Service
 	var playServicePath = '/SkyPlay2'
 	var _action = actions.name[command];
 	console.log('Sky command %s',_action.name);
-	doSkyRequest(_action,playServicePath, commandValue, function(res) {
+	this.doSkyRequest(_action,playServicePath, commandValue, function(res) {
 		this.emit('response',res);
 	})}
 }
 /*
  * 	Sends requests to the detected Sky Box
  */
-function doSkyRequest(actions, servicePath, actionArgs, initRes) {
+SkyBox.prototype.doSkyRequest = function(actions, servicePath, actionArgs, initRes) {
 
+	var self = this;
 	var options = {
 		hostname : skyServiceHost,
 		port : skyServicePort,
