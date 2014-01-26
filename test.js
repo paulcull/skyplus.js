@@ -1,9 +1,7 @@
 var SkyPlusNetwork = require('./index');
-//var lms = new LogitechMediaServer('192.168.0.106');
-var sky = new SkyPlusNetwork('localhost');
+var sky = new SkyPlusNetwork();
 var player;
-var ip_address = '192.168.1.43';   // kitchen
-//var mac_address = '93:15:45:55:15:fb'; //macbook
+var ip_address = '192.168.1.43';   // box
 
 // Simple keypress detection
 var readline = require('readline');

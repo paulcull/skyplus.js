@@ -8,13 +8,9 @@ var url = require('url');
 var dgram = require('dgram');
 var EventEmitter = require('events').EventEmitter;
 
-/* get channels from http://tv.sky.com/channel/index (default) OR use the guide @ http://tv.sky.com/tv-guide
- * and grab from the AJAX request made to  http://tv.sky.com/channel/index/<Your area>
- */
-var channels = require('./channels.json').init.channels;
-var actions = require('./actions.json').actions;
 
-function SkyBox(address) {
+
+function SkyBox(address,actions) {
 	var self = this;
 	self.address = address;
 	// Sky box
@@ -39,12 +35,73 @@ SkyBox.prototype.command = function(command, commandValue) {
 
 	var self = this;
 	// SkyPlay2 Service
+
+
+	/*
+	* 	SOAP Request definitions
+	*/
+
+	// SkyPlay2 Service
 	var playServicePath = '/SkyPlay2'
-	var _action = actions.name[command];
-	console.log('Sky command %s',_action.name);
+	var pauseActions = {
+		header : '"urn:schemas-nds-com:service:SkyPlay:2#Pause"',
+		body : '<?xml version="1.0" encoding="utf-8"?>' + 
+					'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+					'<u:Pause xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+					'<InstanceID>0</InstanceID></u:Pause></s:Body></s:Envelope>',
+		getBody : function() {
+			return this.body;
+		}
+	};
+
+	var playActions = {
+		header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
+		body : '<?xml version="1.0" encoding="utf-8"?>' + 
+					'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+					'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+					'<InstanceID>0</InstanceID><Speed>1</Speed></u:Play></s:Body></s:Envelope>',
+		getBody : function() {
+			return this.body;
+		}
+	};
+
+	var ffwActions = {
+		header : '"urn:schemas-nds-com:service:SkyPlay:2#Play"',
+		getBody : function(speed) {
+			return '<?xml version="1.0" encoding="utf-8"?>' +
+		'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' +
+		'<u:Play xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' +
+		'<InstanceID>0</InstanceID><Speed>' + speed + '</Speed></u:Play></s:Body></s:Envelope>';
+		}
+	};
+
+	var channelActions = {
+		header : '"urn:schemas-nds-com:service:SkyPlay:2#SetAVTransportURI"',
+		getBody : function(channel) {
+			return '<?xml version="1.0" encoding="utf-8"?>' + 
+						'<s:Envelope s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body>' + 
+						'<u:SetAVTransportURI xmlns:u="urn:schemas-nds-com:service:SkyPlay:2">' + 
+						'<InstanceID>0</InstanceID><CurrentURI>xsi://' + channel + '</CurrentURI></u:SetAVTransportURI></s:Body></s:Envelope>'
+		}
+	}
+
+
+	var _action = []; 
+	switch (command) {
+	    case 'Play':  _action = playActions; break;
+	    case 'Pause':   _action =  pauseActions; break;
+	    case 'Fwd':   _action =  ffwActions; break;
+	    case 'Rew':   _action =  rewActions; break;
+	    case 'Channel':   _action =  channelActions; break;
+	    default: console.log('Unknown action');    break;
+	}
+
+
+	console.log('Sky command %s',command);
+	console.log('actions : %s',JSON.stringify(_action))
 	this.doSkyRequest(_action,playServicePath, commandValue, function(res) {
 		this.emit('response',res);
-	})}
+	});
 }
 /*
  * 	Sends requests to the detected Sky Box
@@ -52,6 +109,7 @@ SkyBox.prototype.command = function(command, commandValue) {
 SkyBox.prototype.doSkyRequest = function(actions, servicePath, actionArgs, initRes) {
 
 	var self = this;
+	
 	var options = {
 		hostname : skyServiceHost,
 		port : skyServicePort,
@@ -79,66 +137,10 @@ SkyBox.prototype.doSkyRequest = function(actions, servicePath, actionArgs, initR
 	});
 }
 
-/*
- * 	Incoming HTTP Server. Passes requests to
+
+/* 
+ * return details of the skybox
  */
-// function startHTTPServer() {
-
-// 	http.createServer(function(req, res) {
-// 		//ignore favicon requests
-// 		if (req.url === '/favicon.ico') {
-// 			return;
-// 		}
-
-// 		var requestPath = url.parse(req.url).pathname;
-
-// 		switch (requestPath) {
-// 			case '/' :
-// 				doGUIRequest(res);
-// 				break;
-// 			case '/pause' :
-// 				console.log("Pausing");
-// 				doSkyRequest(pauseActions, playServicePath, res);
-// 				break;
-// 			case '/play' :
-// 				console.log("Playing");
-// 				doSkyRequest(playActions, playServicePath, res);
-// 				break;
-// 			case '/channel' :
-// 				var channel = url.parse(req.url, true).query.channel;
-// 				console.log("Changing to channel ID " + channel);
-// 				doSkyRequest(channelActions, playServicePath, res, Number(channel).toString(16));
-// 				break;
-// 			case '/ffw' :
-// 				var speed = url.parse(req.url, true).query.speed;
-// 				console.log("Fast forwarding at " + speed + "x speed");
-// 				doSkyRequest(ffwActions, playServicePath, res, Number(speed).toString(16));
-// 				break;
-// 			case '/skipAds' :
-// 				var speed = url.parse(req.url, true).query.speed;
-// 				console.log("Attempting to Skip adverts, playing in 7 seconds");
-// 				doSkyRequest(ffwActions, playServicePath, res, 30);
-// 				setTimout(function(){doSkyRequest(playActions, playServicePath, res)},7000);
-// 				break;
-// 			case '/scheduled' :
-// 				var channel = url.parse(req.url, true).query.channel;
-// 				console.log("Schedule called for channel: " + channel);
-// 				getChannelListings(channel, function(data) {
-// 					var current = getCurrentScheduledProgram(data);
-// 					console.log('Current Program : ' + current);
-// 					res.end(current);
-// 				}); 
-//             break;
-// 			default :
-            
-// 				console.log("Bad Request to " + requestPath);
-// 				res.end('Bad Request');
-// 				break;
-// 		}
-// 	}).listen(localPort);
-// 	console.log("Web server now running on port " + localPort)
-// }
-
 SkyBox.prototype.inspect = function() {
     // Convenience method for debugging/logging.
     // Return self but without certain lengthy sub-objects.
