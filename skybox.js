@@ -3,6 +3,7 @@
  */
 
 //var http = require('http');
+var util = require('util');
 var url = require('url');
 var dgram = require('dgram');
 var EventEmitter = require('events').EventEmitter;
@@ -76,7 +77,7 @@ SkyBox.prototype.doSkyRequest = function(actions, servicePath, actionArgs, initR
 	req.on('error', function(e) {
 		console.log('Error in Comms with SKY Box ' + e.message);
 	});
-};
+}
 
 /*
  * 	Incoming HTTP Server. Passes requests to
